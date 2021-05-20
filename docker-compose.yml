@@ -10,4 +10,18 @@ services:
         volumes: 
             - ./frontend:/app
             - /app/node_modules
-            
+        
+# create networks
+networks: 
+    frontend:
+        driver: bridge
+    backend:
+        driver: bridge
+
+# create volumes
+volumes:
+    mongodbdata:
+        driver: local
+    appdata:
+        driver: local
+        
