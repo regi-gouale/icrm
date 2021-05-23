@@ -1,10 +1,12 @@
 import datetime
 import locale
 import os
+import socket
 
-# import pymongo
-from flask import Flask, Response, request
+from flask import Flask, request, jsonify
+from flask.wrappers import Response
 from flask_mongoengine import MongoEngine
+
 
 app = Flask(__name__)
 
@@ -14,40 +16,42 @@ app.config['MONGODB_SETTINGS'] = {
     'password': os.environ['MONGODB_PASSWORD'],
     'db': 'webapp'
 }
-
 db = MongoEngine()
+
 db.init_app(app)
 
 
-class Todo(db.Document):
-    title = db.StringField(max_length=60)
-    text = db.StringField()
-    done = db.BooleanField(default=False)
-    pub_date = db.DateTimeField(default=datetime.datetime.now)
+class Members(db.Document):
+    email = db.StringField(required=True)
+    first_name = db.StringField(max_length=50)
+    last_name = db.StringField(max_length=80)
+    is_star = db.BooleanField(default=False)
+    picture = db.ImageField()
 
 
-@app.route('/api')
+class Departments(db.Document):
+    name = db.StringField(required=True)
+    responsible = db.ReferenceField(Members)
+
+
+@app.route('/')
 def index():
-    Todo.objects().delete()
-    Todo(title="Simple todo A", text="12345678910").save()
-    Todo(title="Simple todo B", text="12345678910").save()
-    Todo.objects(title__contains="B").update(set__text="Hello world")
-    todos = Todo.objects().to_json()
-    return Response(todos, mimetype="application/json", status=200)
+    hostname = socket.gethostname()
+    regi = Members(email="rggouale@gmail.com", first_name="regi",
+                   last_name="gouale", is_star=True)
+    print(regi)
+    regi.save()
+    member = Members.objects().to_json()
+    return Response(member, mimetype="application/json", status=200)
+
+
+@app.route('/members', methods=["GET"])
+def get_all_members():
+    data = []
+    for member in Members.objects:
+        data.append((member.first_name, member.last_name))
+
+    return Response(data, mimetype='application/json', status=200)
 
 if __name__ == '__main__':
-    # apiclient = pymongo.MongoClient("mongodb://localhost:27017/")
-    # icrmdb = apiclient['webapp']
-
-    # members = icrmdb['Members']
-
-    # member = {
-    #     "name": "gouale",
-    #     "firstname": "regi"
-    # }
-    # x = members.insert_one(member)
-    # print(f"List of collections ======>")
-    # for coll in icrmdb.list_collection_names():
-    #     print(coll)
-
     app.run(debug=True, port=5000)

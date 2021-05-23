@@ -1,4 +1,6 @@
-flask==1.1.1
-gunicorn==20.0.4
+flask
+gunicorn
 flask-mongoengine
-pymongo==3.11.4
+pymongo
+Flask-PyMongo
+mongoengine
